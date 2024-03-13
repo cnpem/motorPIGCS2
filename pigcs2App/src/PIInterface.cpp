@@ -137,6 +137,7 @@ asynStatus PIInterface::sendAndReceive(const char *outputBuff, char *inputBuff, 
         status = pasynOctetSyncIO->read(m_pAsynInterface,
                                              inputBuff+pos, inputSize-pos,
                                              TIMEOUT, &nRead, &eomReason);
+        //printf("PIInterface::sendAndReceive(char) in while loop. inputBuff: \"%s\"\n", inputBuff);
 
     }
     asynPrint(logSink, ASYN_TRACEIO_DRIVER,
@@ -223,7 +224,7 @@ asynStatus PIInterface::sendAndReceive(char c, char *inputBuff, int inputSize, a
                                              &c, 1,
                                              inputBuff+pos, inputSize-pos,
                                              TIMEOUT, &nWrite, &nRead, &eomReason);
-//printf("PIInterface::sendAndReceive(char) in while loop. inputBuff: \"%s\"\n", inputBuff);
+    //printf("PIInterface::sendAndReceive(char) in while loop. inputBuff: \"%s\"\n", inputBuff);
     }
     asynPrint(logSink, ASYN_TRACEIO_DRIVER,
     		"PIInterface::sendAndReceive() received \"%s\"\n", inputBuff);
