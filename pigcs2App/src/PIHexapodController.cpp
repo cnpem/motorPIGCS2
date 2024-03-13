@@ -29,8 +29,8 @@ asynStatus PIHexapodController::init(void)
 	}
 
 	// Try to find out if #4 is supported
-	char buf[200];
-	status = m_pInterface->sendAndReceive(char(4), buf, 199);
+	char buf[255];
+	status = m_pInterface->sendAndReceive(char(4), buf, 255);
 	if (status == asynSuccess)
 	{
 		m_bCanReadStatusWithChar4 = true;
@@ -40,7 +40,7 @@ asynStatus PIHexapodController::init(void)
 		m_bCanReadStatusWithChar4 = false;
 		getGCSError(); // clear error UNKNOWN COMMAND
 	}
-	status = m_pInterface->sendAndReceive(char(3), buf, 199);
+	status = m_pInterface->sendAndReceive(char(3), buf, 255);
 	if (status == asynSuccess)
 	{
 		m_bCanReadPosWithChar3 = true;
@@ -153,8 +153,18 @@ asynStatus PIHexapodController::moveCts( PIasynAxis* pAxis, int targetCts )
 //	printf("PIHexapodController::moveCts(,%d)...\n",targetCts);
 	asynStatus status;
 	char cmd[100];
-	double target = double(targetCts) * pAxis->m_CPUdenominator / pAxis->m_CPUnumerator;
-    sprintf(cmd,"MOV %s %f", pAxis->m_szAxisName, target);
+	//double target = double(targetCts) * pAxis->m_CPUdenominator / pAxis->m_CPUnumerator;
+    //sprintf(cmd,"MOV %s %f", pAxis->m_szAxisName, target);
+	if(m_targetMode == 0) {
+		double target = double(targetCts) * pAxis->m_CPUdenominator / pAxis->m_CPUnumerator;
+    	sprintf(cmd,"MOV %s %f", pAxis->m_szAxisName, target);
+	} else if (m_targetMode == 1) {
+		double relative = (targetCts - pAxis->m_positionCts) * pAxis->m_CPUdenominator / pAxis->m_CPUnumerator;
+		sprintf(cmd,"MRT %s %f", pAxis->m_szAxisName, relative);
+	} else if (m_targetMode == 2) {
+		double relative = (targetCts - pAxis->m_positionCts) * pAxis->m_CPUdenominator / pAxis->m_CPUnumerator;
+		sprintf(cmd,"MRW %s %f", pAxis->m_szAxisName, relative);
+	}
     status = m_pInterface->sendOnly(cmd);
     if (asynSuccess != status)
     {
@@ -181,7 +191,7 @@ asynStatus PIHexapodController::moveCts( PIasynAxis* pAxis, int targetCts )
     }
     m_bAnyAxisMoving = true;
     pAxis->m_lastDirection = (targetCts > pAxis->m_positionCts) ? 1 : 0;
-	printf("PIHexapodController::moveCts(,%d) - OK!\n",targetCts);
+	//printf("PIHexapodController::moveCts(,%d) - OK!\n",targetCts);
    	return status;
 }
 
@@ -234,7 +244,7 @@ asynStatus PIHexapodController::getAxisPosition(PIasynAxis* pAxis, double& posit
 	if (m_bCanReadPosWithChar3)
 	{
 		char buf[255];
-		asynStatus status = m_pInterface->sendAndReceive(char(3), buf, 99);
+		asynStatus status = m_pInterface->sendAndReceive(char(3), buf, 255);
 		if (status != asynSuccess)
 		{
 			return status;
@@ -279,7 +289,6 @@ asynStatus PIHexapodController::getAxisPosition(PIasynAxis* pAxis, double& posit
 	}
 	// return last position
     position = double(pAxis->m_positionCts) * double(pAxis->m_CPUdenominator) / double(pAxis->m_CPUnumerator);
-
 	return asynSuccess;
 }
 
@@ -369,49 +378,51 @@ asynStatus PIHexapodController::ReadPivotSettings()
 	{
 		return status;
 	}
-	char* pStart = buf;
-	bool bEnd = false;
-	double px = 0.0;
-	double py = 0.0;
-	double pz = 0.0;
-	for(;;)
-	{
-		while(*pStart == ' ') pStart++;
-		char *pLF = strstr(pStart, "\n");
-		if (pLF != NULL)
+	int errorCode = getGCSError();
+    if (errorCode == 0) {
+		char* pStart = buf;
+		bool bEnd = false;
+		double px = 0.0;
+		double py = 0.0;
+		double pz = 0.0;
+		for(;;)
 		{
-			*pLF = '\0';
+			while(*pStart == ' ') pStart++;
+			char *pLF = strstr(pStart, "\n");
+			if (pLF != NULL)
+			{
+				*pLF = '\0';
+			}
+			else
+			{
+				bEnd = true;
+			}
+			// single line will look like "R = 1.0 \n"
+			double value;
+			if (!getValue(pStart, value))
+			{
+				return asynError;
+			}
+			switch(pStart[0])
+			{
+				case'R': px = value; break;
+				case'S': py = value; break;
+				case'T': pz = value; break;
+			}
+			if (bEnd)
+			{
+				break;
+			}
+			pStart = pLF + 1;
+			if (*pStart == '\0')
+			{
+				break;
+			}
 		}
-		else
-		{
-			bEnd = true;
-		}
-		// single line will look like "R = 1.0 \n"
-		double value;
-		if (!getValue(pStart, value))
-		{
-			return asynError;
-		}
-		switch(pStart[0])
-		{
-			case'R': px = value; break;
-			case'S': py = value; break;
-			case'T': pz = value; break;
-		}
-		if (bEnd)
-		{
-			break;
-		}
-		pStart = pLF + 1;
-		if (*pStart == '\0')
-		{
-			break;
-		}
+		m_PivotX = px;
+		m_PivotY = py;
+		m_PivotZ = pz;
 	}
-	m_PivotX = px;
-	m_PivotY = py;
-	m_PivotZ = pz;
-
 	return status;
 }
 
