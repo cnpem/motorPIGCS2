@@ -8,10 +8,7 @@ DIRS += $(wildcard *Sup)
 DIRS += $(wildcard *App)
 DIRS += $(wildcard *Top)
 DIRS += $(wildcard iocBoot)
-
-ifeq ($(BUILD_IOCS), YES)
 DIRS += $(wildcard iocs)
-endif
 
 # The build order is controlled by these dependency rules:
 

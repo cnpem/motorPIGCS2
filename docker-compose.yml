@@ -1,0 +1,15 @@
+services:
+  ioc:
+    image: ghcr.io/cnpem/motorpigcs2
+    build:
+      context: ./
+      dockerfile: docker/Dockerfile
+      target: dynamic-link
+      labels:
+        org.opencontainers.image.source: https://github.com/cnpem/motorPIGCS2
+      args:
+        REPONAME: motorpigcs2
+        RUNDIR: /opt/motorpigcs2/iocs/pigcs2IOC/iocBoot/iocPIGCS2
+        BUILD_STAGE_VERSION:
+        RUNTIME_PACKAGES:
+        BUILD_PACKAGES:

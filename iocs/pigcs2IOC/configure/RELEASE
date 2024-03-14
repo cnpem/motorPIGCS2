@@ -1,5 +1,8 @@
 # RELEASE - Location of external support modules
 
+MOTOR_PIGCS2=$(TOP)/../..
+-include $(TOP)/../../configure/RELEASE
+
 # Use motor/module's generated release file when buidling inside motor
 -include $(TOP)/../../../RELEASE.$(EPICS_HOST_ARCH).local
 # Use motorPIGCS2's release file when building inside motorPIGCS2, but outside motor

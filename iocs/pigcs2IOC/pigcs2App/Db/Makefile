@@ -7,21 +7,12 @@ include $(TOP)/configure/CONFIG
 #  Optimization of db files using dbst (DEFAULT: NO)
 #DB_OPT = YES
 
-ifdef MOTOR_PIGCS2
 ### this module was built outside motor
-DB_INSTALLS += $(MOTOR_PIGCS2)/db/PI_SupportError.db
-DB_INSTALLS += $(MOTOR_PIGCS2)/db/PI_SupportCtrl.db
-DB_INSTALLS += $(MOTOR_PIGCS2)/db/PI_SupportCL.db
-DB_INSTALLS += $(MOTOR_PIGCS2)/db/PI_Support.db
-DB_INSTALLS += $(MOTOR_PIGCS2)/db/PI_SupportCS.db
-else
-### this module was built inside motor/modules
-DB_INSTALLS += $(MOTOR)/db/PI_SupportError.db
-DB_INSTALLS += $(MOTOR)/db/PI_SupportCtrl.db
-DB_INSTALLS += $(MOTOR)/db/PI_SupportCL.db
-DB_INSTALLS += $(MOTOR)/db/PI_Support.db
-DB_INSTALLS += $(MOTOR)/db/PI_SupportCS.db
-endif
+DB_INSTALLS += $(TOP)/../../db/PI_SupportError.db
+DB_INSTALLS += $(TOP)/../../db/PI_SupportCtrl.db
+DB_INSTALLS += $(TOP)/../../db/PI_SupportCL.db
+DB_INSTALLS += $(TOP)/../../db/PI_Support.db
+DB_INSTALLS += $(TOP)/../../db/PI_SupportCS.db
 
 #----------------------------------------------------
 # Create and install (or just install) into <top>/db
